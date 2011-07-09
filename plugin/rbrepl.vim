@@ -68,7 +68,7 @@ class RbREPL
 
   def insert_result(result)
     clear_lines
-    VIM::command("normal! o#{result}")
+    VIM::command("normal! o#{result}") if result
   end
 
   def evaluate(line)
@@ -80,7 +80,7 @@ class RbREPL
         insert_result('    ' + line)
       end
     else
-      insert_result(result) if result
+        insert_result(result)
     end
     insert_prompt(true)
   end

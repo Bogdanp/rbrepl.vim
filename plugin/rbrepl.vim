@@ -43,13 +43,15 @@ require 'ripl'
 require 'stringio'
 
 module Ripl::Vim
-  def redirect_stdout
+  def redirect_stdstreams
     @old_stdout = $stdout
-    $stdout = StringIO.new
+    @old_stderr = $stderr
+    $stdout = $stderr = StringIO.new
   end
 
-  def restore_stdout
+  def restore_stdstreams
     $stdout = @old_stdout
+    $stderr = @old_stderr
   end
 
   def insert_prompt(newline=true)
@@ -61,25 +63,25 @@ module Ripl::Vim
   # Override Ripl::Shell#get_input to take input from the current line of the
   # current vim buffer.
   def get_input
-    redirect_stdout
+    redirect_stdstreams
     $curbuf.line.gsub(/#{prompt} ?/, '').rstrip
   end
 
   # Override Ripl::Shell#print_result to insert the result directly below the
   # current line of the current vim buffer.
   def print_result(result)
-    print_stdout
+    print_stdstreams
     unless @error_raised
       add_to_buffer(format_result(result))
     end
   rescue StandardError, SyntaxError
     warn "ripl: Error while printing result:\n"+ format_error($!)
   ensure
-    restore_stdout
+    restore_stdstreams
     insert_prompt
   end
 
-  def print_stdout
+  def print_stdstreams
     $stdout.rewind
     s = $stdout.read.rstrip
     add_to_buffer(s) unless s == ""

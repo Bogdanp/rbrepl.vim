@@ -3,6 +3,12 @@
 RbREPL.vim is a VIM plugin that allows you to run a Ruby interactive
 interpreter inside a VIM buffer.
 
+# Preview
+
+Screenshot:
+
+![Version 0.0.1](http://farm7.static.flickr.com/6128/5918575164_d37092b6e9_z.jpg)
+
 # Warning
 
 *Multiline statements don't yet work.*

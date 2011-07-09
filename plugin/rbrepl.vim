@@ -1,6 +1,6 @@
 " =======================================================================
 " File:        rbrepl.vim
-" Version:     0.0.1
+" Version:     0.0.2
 " Description: Vim plugin that lets you run a Ruby interactive
 "              interpreter inside a VIM buffer.
 " Maintainer:  Bogdan Popa <popa.bogdanp@gmail.com>

@@ -56,19 +56,17 @@ class RbREPL
     $stdout = @old_stdout
   end
 
-  def clear_lines
-    VIM::command("normal! jdG")
-  end
-
   def insert_prompt(newline=false)
     cmd = newline ? 'o' : 'i'
     VIM::command("normal! #{cmd}#{@prompt} $")
     VIM::command('startinsert!')
   end
 
-  def insert_result(result)
-    clear_lines
-    VIM::command("normal! o#{result}") if result
+  def insert_result(result, show_rocket=false)
+    result = 'nil' if result.to_s.empty?
+    result = "=> #{result}" if show_rocket
+    VIM::command("normal! jdG")
+    VIM::command("normal! o#{result}")
   end
 
   def evaluate(line)
@@ -80,7 +78,7 @@ class RbREPL
         insert_result('    ' + line)
       end
     else
-        insert_result(result)
+      insert_result(result, true)
     end
     insert_prompt(true)
   end
@@ -92,7 +90,7 @@ class RbREPL
   def read_line
     redirect_stdout
     line = strip_line($curbuf.line)
-    evaluate line if line
+    evaluate line if not line.empty?
     restore_stdout
   end
 end

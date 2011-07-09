@@ -68,6 +68,7 @@ module Ripl::Vim
   # Override Ripl::Shell#print_result to insert the result directly below the
   # current line of the current vim buffer.
   def print_result(result)
+    print_stdout
     unless @error_raised
       add_to_buffer(format_result(result))
     end
@@ -76,6 +77,12 @@ module Ripl::Vim
   ensure
     restore_stdout
     insert_prompt
+  end
+
+  def print_stdout
+    $stdout.rewind
+    s = $stdout.read.rstrip
+    add_to_buffer(s) unless s == ""
   end
 
   def add_to_buffer(msg)

@@ -60,10 +60,19 @@ module Ripl::Vim
     VIM::command('startinsert!')
   end
 
+  # Override Ripl::Shell#loop_once to capture stdout and stderr and ensure
+  # that the prompt is inserted.
+  def loop_once
+    redirect_stdstreams
+    super
+  ensure
+    restore_stdstreams
+    insert_prompt
+  end
+
   # Override Ripl::Shell#get_input to take input from the current line of the
   # current vim buffer.
   def get_input
-    redirect_stdstreams
     $curbuf.line.gsub(/#{prompt} ?/, '').rstrip
   end
 
@@ -76,9 +85,6 @@ module Ripl::Vim
     end
   rescue StandardError, SyntaxError
     warn "ripl: Error while printing result:\n"+ format_error($!)
-  ensure
-    restore_stdstreams
-    insert_prompt
   end
 
   def print_stdstreams

@@ -96,13 +96,13 @@ class RbREPL
     insert_prompt(true)
   end
 
-  def strip_line(line)
-    line.gsub(/#{@prompt} ?/, '').rstrip
+  def get_line
+    $curbuf.line.gsub(/#{@prompt} ?/, '').rstrip
   end
 
   def read_line
     redirect_stdstreams
-    line = strip_line($curbuf.line)
+    line = get_line
     evaluate(line) if not line.empty?
     restore_stdstreams
   end

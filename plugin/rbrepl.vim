@@ -1,6 +1,6 @@
 " =======================================================================
 " File:        rbrepl.vim
-" Version:     0.0.2
+" Version:     0.0.3
 " Description: Vim plugin that lets you run a Ruby interactive
 "              interpreter inside a VIM buffer.
 " Maintainer:  Bogdan Popa <popa.bogdanp@gmail.com>
@@ -64,23 +64,35 @@ class RbREPL
     VIM::command('startinsert!')
   end
 
-  def insert_result(result, show_rocket=false)
-    result = 'nil' if result.to_s.empty?
-    result = "=> #{result}" if show_rocket
+  def insert_line(line)
     VIM::command("normal! jdG")
-    VIM::command("normal! o#{result}")
+    VIM::command("normal! o#{line.rstrip}")
+  end
+
+  def insert_result(result)
+    result = 'nil' if result.to_s.empty?
+    result = "=> #{result}"
+    insert_line(result)
+  end
+
+  def insert_stdout
+    $stdout.rewind
+    $stdout.readlines.each do |line|
+      insert_line(line)
+    end
   end
 
   def evaluate(line)
     begin
-      result = eval(line, @binding, '<string>')
+      result = eval(line, @binding)
     rescue => e
-      insert_result(e.inspect.to_s[2..-2])
+      insert_line(e.inspect.to_s[2..-2])
       e.backtrace[4..-1].each do |line|
-        insert_result('    ' + line)
+        insert_line('    ' + line)
       end
     else
-      insert_result(result, true)
+      insert_stdout
+      insert_result(result)
     end
     insert_prompt(true)
   end

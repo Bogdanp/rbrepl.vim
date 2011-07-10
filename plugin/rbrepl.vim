@@ -51,8 +51,8 @@ end
 
 module RbREPL
   class REPL
-    def initialize(prompt)
-      @prompt = prompt
+    def initialize(prompt, block_prompt='....> ')
+      @prompt, @block_prompt = prompt, block_prompt
       @binding = binding
       @block = ''
     end
@@ -68,9 +68,10 @@ module RbREPL
       $stdout = @old_stdout
     end
   
-    def insert_prompt(newline=false)
+    def insert_prompt(newline=false, block=false)
       cmd = newline ? 'o' : 'i'
-      VIM::command("normal! #{cmd}#{@prompt}$")
+      prompt = block ? @block_prompt : @prompt
+      VIM::command("normal! #{cmd}#{prompt}$")
       VIM::command('startinsert!')
     end
   
@@ -107,7 +108,9 @@ module RbREPL
     end
   
     def get_line
-      $curbuf.line.gsub(/#{@prompt} ?/, '').rstrip
+      $curbuf.line.gsub(/^#{@prompt} ?/, '')
+                  .gsub(/^#{@block_prompt} ?/, '')
+                  .rstrip
     end
   
     def read_line
@@ -117,7 +120,7 @@ module RbREPL
           evaluate(@block) if not @block.empty?
           @block = ''
       else
-          insert_prompt(true)
+          insert_prompt(true, true)
       end
       restore_stdstreams
     end

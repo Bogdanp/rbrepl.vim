@@ -1,6 +1,6 @@
 " =======================================================================
 " File:        rbrepl.vim
-" Version:     0.0.5
+" Version:     0.0.6
 " Description: Vim plugin that lets you run a Ruby interactive
 "              interpreter inside a VIM buffer.
 " Maintainer:  Bogdan Popa <popa.bogdanp@gmail.com>
@@ -51,7 +51,7 @@ end
 
 module RbREPL
   class REPL
-    def initialize(prompt='ruby> ', block_prompt='....> ')
+    def initialize(prompt='rb> ', block_prompt='..> ')
       @prompt, @block_prompt = prompt, block_prompt
       @binding = binding
       @block = ''

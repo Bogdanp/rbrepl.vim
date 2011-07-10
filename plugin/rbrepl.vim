@@ -42,8 +42,8 @@ ruby <<EOF
 require 'stringio'
 
 class RbREPL
-  def initialize
-    @prompt = 'ruby>'
+  def initialize(prompt)
+    @prompt = prompt
     @binding = binding
   end
 
@@ -58,7 +58,7 @@ class RbREPL
 
   def insert_prompt(newline=false)
     cmd = newline ? 'o' : 'i'
-    VIM::command("normal! #{cmd}#{@prompt} $")
+    VIM::command("normal! #{cmd}#{@prompt}$")
     VIM::command('startinsert!')
   end
 
@@ -95,7 +95,7 @@ class RbREPL
   end
 end
 
-$rbrepl = RbREPL.new
+$rbrepl = RbREPL.new('ruby> ')
 EOF
 " }}}
 " Public interface. {{{

@@ -7,7 +7,7 @@ interpreter inside a VIM buffer.
 
 Screenshot:
 
-![Version 0.0.1](http://farm7.static.flickr.com/6013/5918697833_2ebe329b44_z.jpg)
+![Version 0.0.5](http://farm7.static.flickr.com/6150/5921996302_4823f1279f_z.jpg)
 
 # Warning
 

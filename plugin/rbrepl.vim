@@ -67,16 +67,21 @@ module RbREPL
       $stderr = @old_stderr
       $stdout = @old_stdout
     end
-  
+
+    def clear_lines
+      VIM::command("normal! jdG")
+    end
+
     def insert_prompt(newline=false, block=false)
-      cmd = newline ? 'o' : 'i'
+      command = newline ? 'o' : 'i'
       prompt = block ? @block_prompt : @prompt
-      VIM::command("normal! #{cmd}#{prompt}$")
+      clear_lines
+      VIM::command("normal! #{command}#{prompt}$")
       VIM::command('startinsert!')
     end
   
     def insert_line(line)
-      VIM::command("normal! jdG")
+      clear_lines
       VIM::command("normal! o#{line.rstrip}")
     end
   

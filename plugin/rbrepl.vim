@@ -1,6 +1,6 @@
 " =======================================================================
 " File:        rbrepl.vim
-" Version:     0.0.3
+" Version:     0.0.4
 " Description: Vim plugin that lets you run a Ruby interactive
 "              interpreter inside a VIM buffer.
 " Maintainer:  Bogdan Popa <popa.bogdanp@gmail.com>
@@ -41,74 +41,90 @@ let g:rbrepl_loaded = 1
 ruby <<EOF
 require 'stringio'
 
-class RbREPL
-  def initialize(prompt)
-    @prompt = prompt
-    @binding = binding
-  end
-
-  def redirect_stdstreams
-    @old_stderr = $stderr
-    @old_stdout = $stdout
-    $stderr = $stdout = StringIO.new
-  end
-
-  def restore_stdstreams
-    $stderr = @old_stderr
-    $stdout = @old_stdout
-  end
-
-  def insert_prompt(newline=false)
-    cmd = newline ? 'o' : 'i'
-    VIM::command("normal! #{cmd}#{@prompt}$")
-    VIM::command('startinsert!')
-  end
-
-  def insert_line(line)
-    VIM::command("normal! jdG")
-    VIM::command("normal! o#{line.rstrip}")
-  end
-
-  def insert_result(result)
-    result = 'nil' if result.to_s.empty?
-    insert_line("=> #{result}")
-  end
-
-  def insert_stdout
-    $stdout.rewind
-    $stdout.readlines.each do |line|
-      insert_line(line)
-    end
-  end
-
-  def evaluate(line)
-    begin
-      result = eval(line, @binding)
-    rescue => e
-      insert_line(e.inspect.to_s[2..-2])
-      e.backtrace[4..-1].each do |line|
-        insert_line('    ' + line)
-      end
-    else
-      insert_stdout
-      insert_result(result)
-    end
-    insert_prompt(true)
-  end
-
-  def get_line
-    $curbuf.line.gsub(/#{@prompt} ?/, '').rstrip
-  end
-
-  def read_line
-    redirect_stdstreams
-    line = get_line
-    evaluate(line) if not line.empty?
-    restore_stdstreams
+class String
+  def balanced?
+    openers = self.scan(/(begin|class|def|do|if|for|while|<<EOF)/).length
+    enders  = self.scan(/(end|EOF)/).length
+    openers - enders == 0
   end
 end
 
-$rbrepl = RbREPL.new('ruby> ')
+module RbREPL
+  class REPL
+    def initialize(prompt)
+      @prompt = prompt
+      @binding = binding
+      @block = ''
+    end
+  
+    def redirect_stdstreams
+      @old_stderr = $stderr
+      @old_stdout = $stdout
+      $stderr = $stdout = StringIO.new
+    end
+  
+    def restore_stdstreams
+      $stderr = @old_stderr
+      $stdout = @old_stdout
+    end
+  
+    def insert_prompt(newline=false)
+      cmd = newline ? 'o' : 'i'
+      VIM::command("normal! #{cmd}#{@prompt}$")
+      VIM::command('startinsert!')
+    end
+  
+    def insert_line(line)
+      VIM::command("normal! jdG")
+      VIM::command("normal! o#{line.rstrip}")
+    end
+  
+    def insert_result(result)
+      result = 'nil' if result.to_s.empty?
+      insert_line("=> #{result}")
+    end
+  
+    def insert_stdout
+      $stdout.rewind
+      $stdout.readlines.each do |line|
+        insert_line(line)
+      end
+    end
+  
+    def evaluate(line)
+      begin
+        result = eval(line, @binding)
+      rescue => e
+        insert_line(e.inspect.to_s[2..-2])
+        e.backtrace[4..-1].each do |line|
+          insert_line('    ' + line)
+        end
+      else
+        insert_stdout
+        insert_result(result)
+      end
+      insert_prompt(true)
+    end
+  
+    def get_line
+      $curbuf.line.gsub(/#{@prompt} ?/, '').rstrip
+    end
+  
+    def read_line
+      redirect_stdstreams
+      @block += "#{get_line};"
+      if @block.balanced?
+          evaluate(@block) if not @block.empty?
+          @block = ''
+      else
+          insert_prompt(true)
+      end
+      restore_stdstreams
+    end
+  end
+end
+
+$rbrepl = RbREPL::REPL.new('ruby> ')
 EOF
 " }}}
 " Public interface. {{{

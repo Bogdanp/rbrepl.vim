@@ -39,65 +39,71 @@ let g:rbrepl_loaded = 1
 " }}}
 " REPL code in Ruby {{{
 ruby <<EOF
+require 'ripl'
 require 'stringio'
 
-class RbREPL
-  def initialize
-    @prompt = 'ruby>'
-    @binding = binding
-  end
-
-  def redirect_stdout
+module Ripl::Vim
+  def redirect_stdstreams
     @old_stdout = $stdout
-    $stdout = StringIO.new
+    @old_stderr = $stderr
+    $stdout = $stderr = StringIO.new
   end
 
-  def restore_stdout
+  def restore_stdstreams
     $stdout = @old_stdout
+    $stderr = @old_stderr
   end
 
-  def insert_prompt(newline=false)
+  def insert_prompt(newline=true)
     cmd = newline ? 'o' : 'i'
-    VIM::command("normal! #{cmd}#{@prompt} $")
+    VIM::command("normal! #{cmd}#{prompt} $")
     VIM::command('startinsert!')
   end
 
-  def insert_result(result, show_rocket=false)
-    result = 'nil' if result.to_s.empty?
-    result = "=> #{result}" if show_rocket
-    VIM::command("normal! jdG")
-    VIM::command("normal! o#{result}")
+  # Override Ripl::Shell#loop_once to capture stdout and stderr and ensure
+  # that the prompt is inserted.
+  def loop_once
+    redirect_stdstreams
+    super
+  ensure
+    restore_stdstreams
+    insert_prompt
   end
 
-  def evaluate(line)
-    begin
-      result = eval(line, @binding, '<string>')
-    rescue => e
-      insert_result(e.inspect.to_s[2..-2])
-      e.backtrace[4..-1].each do |line|
-        insert_result('    ' + line)
-      end
-    else
-      insert_result(result, true)
+  # Override Ripl::Shell#get_input to take input from the current line of the
+  # current vim buffer.
+  def get_input
+    $curbuf.line.gsub(/#{prompt} ?/, '').rstrip
+  end
+
+  # Override Ripl::Shell#print_result to insert the result directly below the
+  # current line of the current vim buffer.
+  def print_result(result)
+    print_stdstreams
+    unless @error_raised
+      add_to_buffer(format_result(result))
     end
-    insert_prompt(true)
+  rescue StandardError, SyntaxError
+    warn "ripl: Error while printing result:\n"+ format_error($!)
   end
 
-  def strip_line(line)
-    line.gsub(/#{@prompt} ?/, '').rstrip
+  def print_stdstreams
+    $stdout.rewind
+    s = $stdout.read.rstrip
+    add_to_buffer(s) unless s == ""
   end
 
-  def read_line
-    redirect_stdout
-    line = strip_line($curbuf.line)
-    evaluate line if not line.empty?
-    restore_stdout
+  def add_to_buffer(msg)
+    VIM.command("normal! jjdG")
+    VIM.command("normal! o#{msg}")
   end
 end
+Ripl::Shell.include Ripl::Vim
 
-$rbrepl = RbREPL.new
+
+$rbrepl = Ripl.shell(:readline => false, :prompt => 'ruby> ')
 EOF
-" }}}
+"
 " Public interface. {{{
 if !hasmapto("<SID>ToggleREPL")
     map <unique><leader>R :call <SID>ToggleREPL()<CR>
@@ -117,9 +123,11 @@ fun! s:StartREPL()
     enew
     setl ft=ruby
     setl noai nocin nosi inde=
-    map  <buffer><silent><CR> :ruby $rbrepl.read_line<CR>
-    imap <buffer><silent><CR> :ruby $rbrepl.read_line<CR>
-    ruby $rbrepl.insert_prompt
+    silent set buftype=nofile
+    map  <buffer><silent><CR> :ruby $rbrepl.loop_once<CR>
+    imap <buffer><silent><CR> :ruby $rbrepl.loop_once<CR>
+    ruby $rbrepl.before_loop
+    ruby $rbrepl.insert_prompt(false)
     echo("RbREPL started.")
 endfun
 
@@ -128,6 +136,7 @@ fun! s:StopREPL()
     imap <buffer><silent><S-CR> <S-CR>
     map  <buffer><silent><CR> <CR>
     imap <buffer><silent><CR> <CR>
+    ruby $rbrepl.after_loop
     echo("RbREPL stopped.")
 endfun
 

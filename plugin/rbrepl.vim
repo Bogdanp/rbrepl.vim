@@ -71,8 +71,7 @@ class RbREPL
 
   def insert_result(result)
     result = 'nil' if result.to_s.empty?
-    result = "=> #{result}"
-    insert_line(result)
+    insert_line("=> #{result}")
   end
 
   def insert_stdout

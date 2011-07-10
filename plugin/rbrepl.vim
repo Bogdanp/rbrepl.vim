@@ -47,12 +47,14 @@ class RbREPL
     @binding = binding
   end
 
-  def redirect_stdout
+  def redirect_stdstreams
+    @old_stderr = $stderr
     @old_stdout = $stdout
-    $stdout = StringIO.new
+    $stderr = $stdout = StringIO.new
   end
 
-  def restore_stdout
+  def restore_stdstreams
+    $stderr = @old_stderr
     $stdout = @old_stdout
   end
 
@@ -88,10 +90,10 @@ class RbREPL
   end
 
   def read_line
-    redirect_stdout
+    redirect_stdstreams
     line = strip_line($curbuf.line)
-    evaluate line if not line.empty?
-    restore_stdout
+    evaluate(line) if not line.empty?
+    restore_stdstreams
   end
 end
 

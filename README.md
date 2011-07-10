@@ -11,7 +11,7 @@ Screenshot:
 
 # Warning
 
-*Multiline statements don't yet work.*
+*Multiline statements <strike>don't yet</strike> sort-of work.*
 
 This plugin is in its early stages and I'm very new to Ruby programming.
 It _probably_ won't do anything harmful to your computer, but it might,
@@ -19,7 +19,7 @@ at times, not work as expected.
 
 # Installation
 
-Use `pathogen` and clone this repository into your `bundles` directory.
+Use `pathogen` and clone this repository into your `bundle` directory.
 
 # Usage
 

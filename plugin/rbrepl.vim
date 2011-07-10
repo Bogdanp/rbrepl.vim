@@ -102,7 +102,9 @@ module RbREPL
         result = eval(line, @binding)
       rescue => e
         insert_line(e.inspect.to_s[2..-2])
-        e.backtrace[4..-1].each do |line|
+        # Skip the first 5 lines of the backtrace since they refer to
+        # this file
+        e.backtrace[5..-1].each do |line|
           insert_line('    ' + line)
         end
       else

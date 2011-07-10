@@ -11,7 +11,7 @@ Screenshot:
 
 # Warning
 
-*Multiline statements <strike>don't yet</strike> sort-of work.*
+*Multiline statements <del>don't yet</del> sort-of work.*
 
 This plugin is in its early stages and I'm very new to Ruby programming.
 It _probably_ won't do anything harmful to your computer, but it might,

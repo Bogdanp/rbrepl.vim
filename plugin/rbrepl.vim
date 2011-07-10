@@ -51,7 +51,7 @@ end
 
 module RbREPL
   class REPL
-    def initialize(prompt, block_prompt='....> ')
+    def initialize(prompt='ruby> ', block_prompt='....> ')
       @prompt, @block_prompt = prompt, block_prompt
       @binding = binding
       @block = ''
@@ -135,7 +135,7 @@ module RbREPL
   end
 end
 
-$rbrepl = RbREPL::REPL.new('ruby> ')
+$rbrepl = RbREPL::REPL.new
 EOF
 " }}}
 " Public interface. {{{

@@ -43,9 +43,9 @@ require 'stringio'
 
 class String
   def balanced?
-    openers = self.scan(/(begin|class|def|do|if|for|while|<<EOF)/).length
-    enders  = self.scan(/(end|EOF)/).length
-    openers - enders == 0
+    openers = self.scan(/(begin|class|def|do|if|for|while|<<EOF|\(|\[|\{)/).length
+    closers = self.scan(/(end|EOF|\}|\]|\))/).length
+    openers - closers == 0
   end
 end
 
@@ -106,21 +106,29 @@ module RbREPL
       end
       insert_prompt(true)
     end
+
+    def evaluate_block
+      evaluate(@block) unless @block.empty?
+      @block = ''
+    end
   
     def get_line
       $curbuf.line.gsub(/^#{@prompt} ?/, '')
                   .gsub(/^#{@block_prompt} ?/, '')
                   .rstrip
     end
+
+    def update_block
+      @block += "#{get_line}\n"
+    end
   
     def read_line
       redirect_stdstreams
-      @block += "#{get_line};"
+      update_block
       if @block.balanced?
-          evaluate(@block) if not @block.empty?
-          @block = ''
+        evaluate_block
       else
-          insert_prompt(true, true)
+        insert_prompt(true, true)
       end
       restore_stdstreams
     end

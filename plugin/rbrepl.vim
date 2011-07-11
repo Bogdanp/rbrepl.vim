@@ -165,6 +165,7 @@ endfun
 
 fun! s:StartREPL()
     enew
+    setl buftype=nofile
     setl ft=ruby
     setl noai nocin nosi inde=
     map  <buffer><silent><CR> :ruby $rbrepl.read_line<CR>

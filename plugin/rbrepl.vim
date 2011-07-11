@@ -120,9 +120,9 @@ module RbREPL
     end
   
     def get_line
-      $curbuf.line.gsub(/^#{@prompt} ?/, '')
-                  .gsub(/^#{@block_prompt} ?/, '')
-                  .rstrip
+      $curbuf.line.gsub(/^#{@prompt} ?/, '').
+                   gsub(/^#{@block_prompt} ?/, '').
+                   rstrip
     end
 
     def update_block

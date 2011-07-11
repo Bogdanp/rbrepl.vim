@@ -1,6 +1,6 @@
 " =======================================================================
 " File:        rbrepl.vim
-" Version:     0.0.6
+" Version:     0.0.7
 " Description: Vim plugin that lets you run a Ruby interactive
 "              interpreter inside a VIM buffer.
 " Maintainer:  Bogdan Popa <popa.bogdanp@gmail.com>
@@ -43,8 +43,11 @@ require 'stringio'
 
 class String
   def balanced?
-    openers = self.scan(/(begin|class|def|do|if|for|while|<<EOF|\(|\[|\{)/).length
-    closers = self.scan(/(end|EOF|\}|\]|\))/).length
+    copy = self.gsub(/"[^"]*"/, '').
+                gsub(/'[^']*'/, '').
+                gsub(/#.*$/, '')
+    openers = copy.scan(/(begin|class|def|do|if|for|while|<<EOF|\(|\[|\{)/).length
+    closers = copy.scan(/(end|EOF|\}|\]|\))/).length
     openers - closers == 0
   end
 end

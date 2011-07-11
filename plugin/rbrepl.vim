@@ -103,7 +103,7 @@ module RbREPL
     def evaluate(line)
       begin
         result = eval(line, @binding)
-      rescue => e
+      rescue StandardError, SyntaxError => e
         insert_line(e.inspect.to_s[2..-2])
         # Skip the first 5 lines of the backtrace since they refer to
         # this file

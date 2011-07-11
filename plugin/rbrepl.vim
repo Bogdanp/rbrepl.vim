@@ -71,6 +71,10 @@ module RbREPL
       $stdout = @old_stdout
     end
 
+    def clear_block
+      @block = ''
+    end
+
     def clear_lines
       VIM::command("normal! jdG")
     end
@@ -119,7 +123,7 @@ module RbREPL
 
     def evaluate_block
       evaluate(@block) unless @block.empty?
-      @block = ''
+      clear_block
     end
   
     def get_line
@@ -170,6 +174,7 @@ fun! s:StartREPL()
     setl noai nocin nosi inde=
     map  <buffer><silent><CR> :ruby $rbrepl.read_line<CR>
     imap <buffer><silent><CR> :ruby $rbrepl.read_line<CR>
+    map  <buffer><silent><leader>c :ruby $rbrepl.clear_block<CR>
     ruby $rbrepl.insert_prompt
     echo("RbREPL started.")
 endfun

@@ -1,6 +1,6 @@
 " =======================================================================
 " File:        rbrepl.vim
-" Version:     0.0.7
+" Version:     0.0.8
 " Description: Vim plugin that lets you run a Ruby interactive
 "              interpreter inside a VIM buffer.
 " Maintainer:  Bogdan Popa <popa.bogdanp@gmail.com>
@@ -42,12 +42,20 @@ ruby <<EOF
 require 'stringio'
 
 class String
+  OpenerTokens = %w[begin module class def case do for while <<EOF] + ['\{', '\[', '\(']
+  CloserTokens = %w[end EOF] + ['\}', '\]', '\)']
+  # Tokens that should only start a block if they are at the beginning
+  # of a line.
+  SpecialTokens = %w[if unless]
+
   def balanced?
-    copy = self.gsub(/"[^"]*"/, '').
+    copy = self.gsub(/\/[^\/]*\//, '').
+                gsub(/"[^"]*"/, '').
                 gsub(/'[^']*'/, '').
                 gsub(/#.*$/, '')
-    openers = copy.scan(/(begin|class|def|do|if|for|while|<<EOF|\(|\[|\{)/).length
-    closers = copy.scan(/(end|EOF|\}|\]|\))/).length
+    openers = copy.scan(/(#{OpenerTokens.join('|')})/).length
+    closers = copy.scan(/(#{CloserTokens.join('|')})/).length
+    openers += copy.scan(/^\s*(#{SpecialTokens.join('|')})/).length
     openers - closers == 0
   end
 end

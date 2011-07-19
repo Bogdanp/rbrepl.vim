@@ -1,6 +1,6 @@
 " =======================================================================
 " File:        rbrepl.vim
-" Version:     0.0.8
+" Version:     0.0.9
 " Description: Vim plugin that lets you run a Ruby interactive
 "              interpreter inside a VIM buffer.
 " Maintainer:  Bogdan Popa <popa.bogdanp@gmail.com>
@@ -112,9 +112,9 @@ module RbREPL
       end
     end
   
-    def evaluate(line)
+    def evaluate(stream)
       begin
-        result = eval(line, @binding)
+        result = eval(stream, @binding)
       rescue StandardError, SyntaxError => e
         insert_line(e.inspect.to_s[2..-2])
         # Skip the first 5 lines of the backtrace since they refer to
@@ -132,6 +132,12 @@ module RbREPL
     def evaluate_block
       evaluate(@block) unless @block.empty?
       clear_block
+    end
+
+    def evaluate_file(filename)
+      redirect_stdstreams
+      evaluate(IO.read(filename))
+      restore_stdstreams
     end
   
     def get_line
@@ -187,6 +193,12 @@ fun! s:StartREPL()
     echo("RbREPL started.")
 endfun
 
+fun! s:StartREPLWithFile()
+    let s:filename = expand('%')
+    call s:StartREPL()
+    ruby $rbrepl.evaluate_file(VIM::evaluate("s:filename"))
+endfun
+
 fun! s:StopREPL()
     map  <buffer><silent><S-CR> <S-CR>
     imap <buffer><silent><S-CR> <S-CR>
@@ -197,6 +209,7 @@ endfun
 
 " Expose the Toggle function publicly.
 command! -nargs=0 RbREPLToggle call s:ToggleREPL()
+command! -nargs=0 RbREPLEvalFile call s:StartREPLWithFile()
 " }}}
 
 " vim:fdm=marker

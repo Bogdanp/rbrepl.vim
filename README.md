@@ -28,3 +28,6 @@ Use `pathogen` and clone this repository into your `bundle` directory.
 Start the REPL using `<leader>R` or `:RbREPLToggle<CR>`. Type away. To
 stop the REPL run either of those commands again. This will not close
 the buffer.
+
+It's possible to evaluate a file you're working on inside the REPL by
+running the command `:RbREPLEvalFile<CR>` on a Ruby file.
